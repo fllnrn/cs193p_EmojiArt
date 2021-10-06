@@ -18,7 +18,6 @@ class EmojiArtDocument: ObservableObject {
     
     var background: EmojiArtModel.Background {emojiArt.background }
     
-    
     // MARK: Intent(s)
     func setBackground (_ background: EmojiArtModel.Background) {
         emojiArt.background = background
@@ -34,7 +33,7 @@ class EmojiArtDocument: ObservableObject {
     }
     
     func scaleEmoji(_ emoji: EmojiArtModel.Emoji, by scale: CGFloat) {
-        if let index = emojiArt.emojis.index(metching: emoji) {
+        if let index = emojiArt.emojis.index(matching: emoji) {
             emojiArt.emojis[index].size = Int((CGFloat(emojiArt.emojis[index].size) * scale).rounded(.toNearestOrAwayFromZero))
         }
     }
