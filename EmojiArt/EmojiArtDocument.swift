@@ -10,17 +10,59 @@ import SwiftUI
 class EmojiArtDocument: ObservableObject {
     @Published private(set) var emojiArt: EmojiArtModel {
         didSet {
+            scheduleAutosave()
             if emojiArt.background != oldValue.background {
                 fetchBackgroundImageDataIfNecessary()
             }
         }
     }
     
+    private var autosaveTimer: Timer?
+    
+    private func scheduleAutosave() {
+        autosaveTimer?.invalidate()
+        autosaveTimer = Timer.scheduledTimer(withTimeInterval: Autosave.coalescingInerval, repeats: false) { _ in
+            self.autosave()
+        }
+    }
+    
+    
+    private struct Autosave {
+        static let filename = "Autosaved.emojiart"
+        static var url: URL? {
+            let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+            return documentDirectory?.appendingPathComponent(filename)
+        }
+        static let coalescingInerval = 5.0
+    }
+    
+    private func autosave() {
+        if let url = Autosave.url {
+            save(to: url)
+        }
+    }
+    
+    private func save(to url: URL) {
+        let thisfunction = "\(String(describing: self)).\(#function)"
+        do {
+            let data: Data = try emojiArt.json()
+            print(String(data: data, encoding: .utf8) ?? "nil")
+            try data.write(to: url)
+            print("sucess!")
+        } catch let encodingError where encodingError is EncodingError {
+            print("\(thisfunction) coldn't encode \(encodingError.localizedDescription)")
+        } catch {
+            print("\(thisfunction) error = \(error)")
+        }
+    }
+    
     init () {
+        if let url = Autosave.url, let autosaveEmojiArt = try? EmojiArtModel(url: url) {
+            emojiArt = autosaveEmojiArt
+            fetchBackgroundImageDataIfNecessary()
+        } else {
         emojiArt = EmojiArtModel()
-        
-        emojiArt.addEmoji("😀", at: (-200, -199), size: 80)
-        emojiArt.addEmoji("😷", at: (50, 100), size: 40)
+        }
     }
     
     var emojis: [EmojiArtModel.Emoji] { emojiArt.emojis }
