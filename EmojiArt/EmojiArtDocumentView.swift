@@ -179,7 +179,11 @@ struct EmojiArtDocumentView: View {
                 }
                 // move selection
             } else {
-                document.moveEmoji(emoji, by: finalDragGestureValue.translation / zoomScale())
+                if finalDragGestureValue.location.x == 0 {
+                    document.deleteEmoji(emoji)
+                } else {
+                    document.moveEmoji(emoji, by: finalDragGestureValue.translation / zoomScale())
+                }
             }
         }
     }
